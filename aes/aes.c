@@ -72,9 +72,6 @@ void KeyExpansion(const uint8_t key[], uint8_t w[]){
             
             if (DEBUG) printf("i: %02d %02X000000\n", i, Rcon[i/Nk]);
             temp[0] = temp[0] ^ Rcon[i/Nk];
-            temp[1] = temp[1] ^ 0x00;
-            temp[2] = temp[2] ^ 0x00;
-            temp[3] = temp[3] ^ 0x00;
             _print_word(i, 0, temp);
 
         } else if(Nk > 6 && i % Nk == 4){
@@ -199,8 +196,7 @@ void Cipher(uint8_t *in, uint8_t *out, uint8_t *w){
     _print(round, "output", out);
 }
 
-int main(void)
-{
+int main(void){
     uint8_t w[BLOCK_LENGTH * (Nr + 1)];
     if (DEBUG) printf("AES-%d (Nk=%d, Nr=%d)\n", Nk*32, Nk, Nr);
     KeyExpansion(KEY_256_1, w);

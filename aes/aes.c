@@ -47,20 +47,18 @@ void KeyExpansion(const uint8_t key[], uint8_t w[]){
     memset(w, 0x0, BLOCK_LENGTH * (Nr + 1));
 
     while (i < Nk){
-        w[4 * i + 0] = key[4 * i + 0];
-        w[4 * i + 1] = key[4 * i + 1];
-        w[4 * i + 2] = key[4 * i + 2];
-        w[4 * i + 3] = key[4 * i + 3];
+        for (int k = 0; k < 4;k++){
+            w[4 * i + k] = key[4 * i + k];
+        }
         i++;
     }
 
     i = Nk;
    
     while(i < Nb * (Nr + 1)){
-        temp[0] = w[(i - 1) * 4 + 0];
-        temp[1] = w[(i - 1) * 4 + 1];
-        temp[2] = w[(i - 1) * 4 + 2];
-        temp[3] = w[(i - 1) * 4 + 3];
+        for (int k = 0; k < 4;k++){
+            temp[k] = w[(i - 1) * 4 + k];
+        }
 #ifdef DEBUG
         _print_word(i, 0, temp);
 #endif
@@ -91,11 +89,9 @@ void KeyExpansion(const uint8_t key[], uint8_t w[]){
 #ifdef DEBUG
         _print_word(i, i-Nk, w);
 #endif
-
-        w[4 * i + 0] = w[4 * (i-Nk) + 0] ^ temp[0];
-        w[4 * i + 1] = w[4 * (i-Nk) + 1] ^ temp[1];
-        w[4 * i + 2] = w[4 * (i-Nk) + 2] ^ temp[2];
-        w[4 * i + 3] = w[4 * (i-Nk) + 3] ^ temp[3];
+        for (int k = 0; k < 4;k++){
+            w[4 * i + k] = w[4 * (i-Nk) + k] ^ temp[k];
+        }
 
 #ifdef DEBUG
         _print_word(i, i, w);
@@ -202,11 +198,12 @@ void Cipher(uint8_t *in, uint8_t *out, uint8_t *w){
         _print(round, "k_sch", w+round*BLOCK_LENGTH);
 #endif
         AddRoundKey(state, w+round*BLOCK_LENGTH);
-
     }
 
     SubBytes(state);
+#ifdef DEBUG
     _print_s(round, "s_box", state);
+#endif
     ShiftRows(state);
 #ifdef DEBUG
     _print_s(round, "s_row", state);
@@ -220,7 +217,10 @@ void Cipher(uint8_t *in, uint8_t *out, uint8_t *w){
             out[k++] = state[i][j];
         }
     }
+
+#ifdef DEBUG
     _print(round, "output", out);
+#endif
 }
 
 int main(void){

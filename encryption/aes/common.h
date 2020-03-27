@@ -19,6 +19,9 @@
 #define Nke     (WORD * Nb * (Nr + 1)) /* Number of bytes in full key expansion */
 #define Nrk     (Nk * WORD) /* length of round key in bytes) */
 
+extern const uint8_t s_box[16][16];
+extern const uint8_t Rcon[11];
+
 void _print(int round, char *step, uint8_t *data);
 void _print_s(int round, char *step, uint8_t data[][Nb]);
 void _print_state(uint8_t state[][Nb], int len);

@@ -32,17 +32,15 @@ const uint8_t s_box[16][16] =
 
 const uint8_t Rcon[11] = { 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36 };
 
-
-
-void error_exit(char *msg)
-{
+void error_exit(char *msg){
     fprintf(stderr, "%s\n", msg);
     exit(EXIT_FAILURE);
 }
 
 void _print(int round, char *step, uint8_t *data){
+    if (!DEBUG) return;
     printf("round[%02d].%s \t", round, step);
-    for(int i = 0; i < SIZE; i++){
+    for(int i = 0; i < Nb*Nb; i++){
         printf("%02X", data[i]);
     } 
     printf("\n");
@@ -60,13 +58,13 @@ void _print_w(int n, uint8_t *word){
 void _print_l(uint8_t *word, int n){
     if (!DEBUG) return;
     for(int i = 0; i<n; i++){
-        if ((i) % 4 == 0) printf(" ");
         printf("%02X",word[i]);
     }
     printf("\n");
 }
 
 void _print_s(int round, char *step, uint8_t data[][Nb]){
+    if (!DEBUG) return;
     printf("round[%02d].%s \t", round, step);
     for (int i = 0; i < 4; i++){
         for (int j = 0; j < Nb; j++){

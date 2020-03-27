@@ -9,13 +9,26 @@
 #include <stdint.h>
 
 #define DEBUG   (1)
+#define AES_128
 
-#define SIZE (16)
-#define Nb      (4)     /* length state*/
-#define Nk      (8)     /* length cipher key (words)*/
+#ifdef AES_128
+#define Nk      (4)     /* length cipher key (32 bit words)*/
+#define Nr      (10)    /* number of rounds */
+#endif
+
+#ifdef AES_192
+#define Nk      (6)     /* length cipher key (32 bit words)*/
+#define Nr      (12)    /* number of rounds */
+#endif
+
+#ifdef AES_256
+#define Nk      (8)     /* length cipher key (32 bit words)*/
 #define Nr      (14)    /* number of rounds */
-#define WORD    (4)     /* standard word size (bytes) */
-#define Nke     (WORD * Nb * (Nr + 1)) /* Number of bytes in full key expansion */
+#endif
+
+#define Nb      (4)     /* length state */
+#define BLOCK_LENGTH    (Nb * Nb) /* standard block size, in bytes (128 bit) */
+#define WORD            (4)     /* standard word size (bytes) */
 
 extern const uint8_t s_box[16][16];
 extern const uint8_t Rcon[11];

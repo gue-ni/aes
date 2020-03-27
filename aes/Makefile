@@ -8,9 +8,12 @@ LFLAGS = -lm
 PROGS  = aes
 DEPS   = common
 
-.PHONY: all clean
+.PHONY: all clean debug
 
 all: $(PROGS)
+
+debug: CFLAGS+=-DDEBUG
+debug: all
 
 $(PROGS): %: %.o $(DEPS:=.o)
 	$(CC) -o $@ $^ $(LFLAGS)

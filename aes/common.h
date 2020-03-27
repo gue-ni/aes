@@ -9,7 +9,6 @@
 #include <stdint.h>
 
 #define AES_128
-#define DEBUG
 
 #ifdef AES_128
 #define Nk      (4)     /* length cipher key (32 bit words)*/

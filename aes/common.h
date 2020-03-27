@@ -10,14 +10,12 @@
 
 #define DEBUG   (1)
 
-#define BLOCKSIZE (128)
 #define SIZE (16)
 #define Nb      (4)     /* length state*/
-#define Nk      (4)     /* length cipher key (words)*/
-#define Nr      (10)    /* number of rounds */
+#define Nk      (8)     /* length cipher key (words)*/
+#define Nr      (14)    /* number of rounds */
 #define WORD    (4)     /* standard word size (bytes) */
 #define Nke     (WORD * Nb * (Nr + 1)) /* Number of bytes in full key expansion */
-#define Nrk     (Nk * WORD) /* length of round key in bytes) */
 
 extern const uint8_t s_box[16][16];
 extern const uint8_t Rcon[11];

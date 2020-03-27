@@ -4,6 +4,12 @@
  * @date 10.01.2020
  * 
  * @brief A small implementation of the Advanced Encryption Standard 
+ * 
+ * TODO: 
+ * decryption
+ * CBC
+ * PKCS#7
+ * 
  */
 
 #include <stdio.h>
@@ -225,9 +231,7 @@ void Cipher(uint8_t *in, uint8_t *out, uint8_t *w){
 
 int main(void){
     uint8_t w[BLOCK_LENGTH * (Nr + 1)];
-#ifdef DEBUG
     printf("AES-%d (Nk=%d, Nr=%d)\n", Nk*32, Nk, Nr);
-#endif
     KeyExpansion(KEY_256_1, w);
     Cipher(PLAINTEXT, OUTPUT, w);
     return 0;

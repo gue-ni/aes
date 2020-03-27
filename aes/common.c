@@ -38,7 +38,6 @@ void error_exit(char *msg){
 }
 
 void _print(int round, char *step, uint8_t *data){
-    if (!DEBUG) return;
     printf("round[%02d].%s \t", round, step);
     for(int i = 0; i < Nb*Nb; i++){
         printf("%02X", data[i]);
@@ -47,7 +46,6 @@ void _print(int round, char *step, uint8_t *data){
 }
 
 void _print_w(int n, uint8_t *word){
-    if (!DEBUG) return;
     printf("i: %02d ", n);
     for(int i = 0; i<4; i++){
         printf("%02X",word[i]);
@@ -56,7 +54,6 @@ void _print_w(int n, uint8_t *word){
 }
 
 void _print_l(uint8_t *word, int n){
-    if (!DEBUG) return;
     for(int i = 0; i<n; i++){
         printf("%02X",word[i]);
     }
@@ -64,7 +61,6 @@ void _print_l(uint8_t *word, int n){
 }
 
 void _print_s(int round, char *step, uint8_t data[][Nb]){
-    if (!DEBUG) return;
     printf("round[%02d].%s \t", round, step);
     for (int i = 0; i < 4; i++){
         for (int j = 0; j < Nb; j++){
@@ -75,7 +71,6 @@ void _print_s(int round, char *step, uint8_t data[][Nb]){
 }
 
 void _print_word(int i, int n, uint8_t *w){
-    if (!DEBUG) return;
     printf("i: %02d ", i);
     for (int k = 0; k < 4; k++){
         printf("%02X", w[4 * n + k]);
@@ -85,7 +80,6 @@ void _print_word(int i, int n, uint8_t *w){
 }
 
 void _print_state(uint8_t state[][Nb], int len){
-    if (!DEBUG) return;
     for (int i = 0; i < len; i++){
         for (int j = 0; j < Nb; j++){
            printf(" %02X ", state[j][i]);

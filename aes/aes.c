@@ -61,32 +61,45 @@ void KeyExpansion(const uint8_t key[], uint8_t w[]){
         temp[1] = w[(i - 1) * 4 + 1];
         temp[2] = w[(i - 1) * 4 + 2];
         temp[3] = w[(i - 1) * 4 + 3];
+#ifdef DEBUG
         _print_word(i, 0, temp);
+#endif
 
         if ( i % Nk == 0){
             RotWord(temp);
+#ifdef DEBUG
             _print_word(i, 0, temp);
+#endif
 
             SubWord(temp);
+#ifdef DEBUG
             _print_word(i, 0, temp);
-            
-            if (DEBUG) printf("i: %02d %02X000000\n", i, Rcon[i/Nk]);
+            printf("i: %02d %02X000000\n", i, Rcon[i/Nk]);
+#endif
             temp[0] = temp[0] ^ Rcon[i/Nk];
+#ifdef DEBUG
             _print_word(i, 0, temp);
+#endif
 
         } else if(Nk > 6 && i % Nk == 4){
             SubWord(temp);
+#ifdef DEBUG
             _print_word(i, 0, temp);
+#endif
         } 
 
+#ifdef DEBUG
         _print_word(i, i-Nk, w);
+#endif
 
         w[4 * i + 0] = w[4 * (i-Nk) + 0] ^ temp[0];
         w[4 * i + 1] = w[4 * (i-Nk) + 1] ^ temp[1];
         w[4 * i + 2] = w[4 * (i-Nk) + 2] ^ temp[2];
         w[4 * i + 3] = w[4 * (i-Nk) + 3] ^ temp[3];
 
+#ifdef DEBUG
         _print_word(i, i, w);
+#endif
 
         i++;
     }
@@ -155,7 +168,9 @@ void InvMixColumns(){}  // TODO
 void Cipher(uint8_t *in, uint8_t *out, uint8_t *w){
     uint8_t state[4][Nb];
     int round = 0;
+#ifdef DEBUG
     _print(round, "input", in);
+#endif
     
     int i, j, k = 0;
     for (i = 0; i < 4; i++){
@@ -164,18 +179,28 @@ void Cipher(uint8_t *in, uint8_t *out, uint8_t *w){
         }
     }
     
+#ifdef DEBUG
     _print(round, "k_sch", w);
+#endif
     AddRoundKey(state, w+(round*BLOCK_LENGTH));
 
     for (round = 1; round < Nr; round++){
+#ifdef DEBUG
         _print_s(round, "start", state);
+#endif
         SubBytes(state);
+#ifdef DEBUG
         _print_s(round, "s_box", state);
+#endif
         ShiftRows(state);
+#ifdef DEBUG
         _print_s(round, "s_row", state);
+#endif
         MixColumns(state);
+#ifdef DEBUG
         _print_s(round, "m_col", state);
         _print(round, "k_sch", w+round*BLOCK_LENGTH);
+#endif
         AddRoundKey(state, w+round*BLOCK_LENGTH);
 
     }
@@ -183,8 +208,10 @@ void Cipher(uint8_t *in, uint8_t *out, uint8_t *w){
     SubBytes(state);
     _print_s(round, "s_box", state);
     ShiftRows(state);
+#ifdef DEBUG
     _print_s(round, "s_row", state);
     _print(round, "k_sch", w+round*BLOCK_LENGTH);
+#endif
     AddRoundKey(state, w+round*BLOCK_LENGTH);
 
     k = 0;
@@ -198,10 +225,10 @@ void Cipher(uint8_t *in, uint8_t *out, uint8_t *w){
 
 int main(void){
     uint8_t w[BLOCK_LENGTH * (Nr + 1)];
-    if (DEBUG) printf("AES-%d (Nk=%d, Nr=%d)\n", Nk*32, Nk, Nr);
+#ifdef DEBUG
+    printf("AES-%d (Nk=%d, Nr=%d)\n", Nk*32, Nk, Nr);
+#endif
     KeyExpansion(KEY_256_1, w);
     Cipher(PLAINTEXT, OUTPUT, w);
-    
-    if (!DEBUG) write(STDOUT_FILENO, OUTPUT, BLOCK_LENGTH);
     return 0;
 }

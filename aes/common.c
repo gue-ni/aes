@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 #include "common.h"
 
 const uint8_t s_box[16][16] = 
@@ -50,6 +51,22 @@ const uint8_t inv_s_box[16][16] = {
 };
 
 const uint8_t Rcon[11] = { 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36 };
+
+void read_hex(char *hex, uint8_t *buf, size_t bytes){
+    char b[2];
+    uint8_t r;
+    for (int i = 0; i < bytes; i++){
+        memcpy(b, hex+(i*2), 2);
+        if(sscanf(b, "%hhx", &r) == EOF){
+            error_exit("failure converting");
+        }
+        //printf("converting %s, result is %02X\n", b, r);
+        buf[i] = r;
+    } 
+
+    //for (int i = 0; i < bytes; i++) printf("%02x", buf[i]);
+    //printf("\n");
+}
 
 void error_exit(char *msg){
     fprintf(stderr, "%s\n", msg);

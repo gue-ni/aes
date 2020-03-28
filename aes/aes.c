@@ -55,43 +55,43 @@ void KeyExpansion(const uint8_t key[], uint8_t w[]){
         for (int k = 0; k < 4;k++){
             temp[k] = w[(i - 1) * 4 + k];
         }
-#ifdef DEBUG
+        #ifdef DEBUG
         _print_word(i, temp);
-#endif
+        #endif
 
         if ( i % Nk == 0){
             RotWord(temp);
-#ifdef DEBUG
+            #ifdef DEBUG
             _print_word(i, temp);
-#endif
+            #endif
 
             SubWord(temp);
-#ifdef DEBUG
+            #ifdef DEBUG
             _print_word(i, temp);
             printf("i: %02d %02X000000\n", i, Rcon[i/Nk]);
-#endif
+            #endif
             temp[0] = temp[0] ^ Rcon[i/Nk];
-#ifdef DEBUG
+            #ifdef DEBUG
             _print_word(i, temp);
-#endif
+            #endif
 
         } else if(Nk > 6 && i % Nk == 4){
             SubWord(temp);
-#ifdef DEBUG
+            #ifdef DEBUG
             _print_word(i, temp);
-#endif
+            #endif
         } 
 
-#ifdef DEBUG
+        #ifdef DEBUG
         _print_word(i, w+(4 * (i-Nk)));
-#endif
+        #endif
         for (int k = 0; k < 4;k++){
             w[4 * i + k] = w[4 * (i-Nk) + k] ^ temp[k];
         }
 
-#ifdef DEBUG
+        #ifdef DEBUG
         _print_word(i, w+4*i);
-#endif
+        #endif
 
         i++;
     }
@@ -195,42 +195,42 @@ void AES_InvCipher(const uint8_t *in, uint8_t *out, const uint8_t *w){
             state[i][j] = in[k++];
         }
     }
-#ifdef DEBUG
+    #ifdef DEBUG
     _print_s(rp, "iinput", state);
     _print(rp, "ik_sch", w+(Nr*BLOCK_LENGTH));
-#endif
+    #endif
     AddRoundKey(state, w+(Nr*BLOCK_LENGTH));
     
     for (int round = Nr-1; round > 0; round--){
-#ifdef DEBUG
+        #ifdef DEBUG
         _print_s(rp, "istart", state);
-#endif
+        #endif
         InvShiftRows(state);
-#ifdef DEBUG
+        #ifdef DEBUG
         _print_s(rp, "is_row", state);
-#endif
+        #endif
         InvSubBytes(state);
-#ifdef DEBUG
+        #ifdef DEBUG
         _print_s(rp, "is_box", state);
         _print(rp, "ik_sch", w+round*BLOCK_LENGTH);
-#endif
+        #endif
         AddRoundKey(state, w+round*BLOCK_LENGTH);
-#ifdef DEBUG
+        #ifdef DEBUG
         _print_s(rp, "ik_add", state);
-#endif
+        #endif
         InvMixColumns(state);
         rp++;
     }
 
     InvShiftRows(state);
-#ifdef DEBUG
+    #ifdef DEBUG
     _print_s(rp, "is_row", state);
-#endif
+    #endif
     InvSubBytes(state);
-#ifdef DEBUG
+    #ifdef DEBUG
     _print_s(rp, "is_box", state);
     _print(rp, "ik_sch", w);
-#endif
+    #endif
     AddRoundKey(state, w);
 
     k = 0;
@@ -239,17 +239,18 @@ void AES_InvCipher(const uint8_t *in, uint8_t *out, const uint8_t *w){
             out[k++] = state[i][j];
         }
     }
-#ifdef DEBUG
+    #ifdef DEBUG
     _print(rp, "ioutput", out);
-#endif
+    #endif
+    for (int k = 0; k < BLOCK_LENGTH; k++) printf("%02x", out[k]);
 }
 
 void AES_Cipher(const uint8_t *in, uint8_t *out, const uint8_t *w){
     uint8_t state[4][Nb];
     int round = 0;
-#ifdef DEBUG
+    #ifdef DEBUG
     _print(round, "input", in);
-#endif
+    #endif
     
     int i, j, k = 0;
     for (i = 0; i < 4; i++){
@@ -258,40 +259,40 @@ void AES_Cipher(const uint8_t *in, uint8_t *out, const uint8_t *w){
         }
     }
     
-#ifdef DEBUG
+    #ifdef DEBUG
     _print(round, "k_sch", w);
-#endif
+    #endif
     AddRoundKey(state, w+(round*BLOCK_LENGTH));
 
     for (round = 1; round < Nr; round++){
-#ifdef DEBUG
+        #ifdef DEBUG
         _print_s(round, "start", state);
-#endif
+        #endif
         SubBytes(state);
-#ifdef DEBUG
+        #ifdef DEBUG
         _print_s(round, "s_box", state);
-#endif
+        #endif
         ShiftRows(state);
-#ifdef DEBUG
+        #ifdef DEBUG
         _print_s(round, "s_row", state);
-#endif
+        #endif
         MixColumns(state);
-#ifdef DEBUG
+        #ifdef DEBUG
         _print_s(round, "m_col", state);
         _print(round, "k_sch", w+round*BLOCK_LENGTH);
-#endif
+        #endif
         AddRoundKey(state, w+round*BLOCK_LENGTH);
     }
 
     SubBytes(state);
-#ifdef DEBUG
+    #ifdef DEBUG
     _print_s(round, "s_box", state);
-#endif
+    #endif
     ShiftRows(state);
-#ifdef DEBUG
+    #ifdef DEBUG
     _print_s(round, "s_row", state);
     _print(round, "k_sch", w+round*BLOCK_LENGTH);
-#endif
+    #endif
     AddRoundKey(state, w+round*BLOCK_LENGTH);
 
     k = 0;
@@ -301,9 +302,10 @@ void AES_Cipher(const uint8_t *in, uint8_t *out, const uint8_t *w){
         }
     }
 
-#ifdef DEBUG
+    #ifdef DEBUG
     _print(round, "output", out);
-#endif
+    #endif
+    for (int k = 0; k < BLOCK_LENGTH; k++) printf("%02x", out[k]);
 }
 
 void XOR_block(uint8_t *a, uint8_t *b, uint8_t *out){
@@ -332,44 +334,84 @@ void AES_CBC_InvCipher(uint8_t *in, uint8_t *out, const int n, const uint8_t *w,
     memcpy(prev, iv, BLOCK_LENGTH);
 
     for (int i = 0; i < n; i++){
-        if (i > 0) memcpy(prev, in+(i * BLOCK_LENGTH), BLOCK_LENGTH);
         AES_InvCipher(in+(i * BLOCK_LENGTH), temp, w);
         XOR_block(temp, prev, out+(i * BLOCK_LENGTH));
-    }
+        memcpy(prev, in+(i * BLOCK_LENGTH), BLOCK_LENGTH);
+   }
 }
 
 int main(void){
     printf("AES-%d (Nk=%d, Nr=%d)\n", Nk*32, Nk, Nr);
-
     uint8_t w[BLOCK_LENGTH * (Nr + 1)];
-    uint8_t OUT[32];
+    uint8_t OUT[64];
+    uint8_t key[Nk*4], iv[Nb*4], plain[64], cipher[64];
 
-    KeyExpansion(KEY_128_1, w);
-    AES_Cipher(PLAINTEXT, OUT, w);
-    if (memcmp(OUT, OUT_128_1, BLOCK_LENGTH) != 0){
-        error_exit("AES_Cipher IS NOT CORRECT");
-    }
+    printf("\n[TEST] AES-128-ECB (NIST FIPS)\n");
+    read_hex("000102030405060708090a0b0c0d0e0f", key, 16);
+    read_hex("00112233445566778899aabbccddeeff", plain, 16);
+    read_hex("69c4e0d86a7b0430d8cdb78070b4c55a", cipher, 16);
+    KeyExpansion(key, w);
+    AES_Cipher(plain, OUT, w);
+    if (memcmp(OUT, cipher, BLOCK_LENGTH) != 0) printf("\ncipher not correct");
     memset(OUT, 0, BLOCK_LENGTH);
-    AES_InvCipher(OUT_128_1, OUT, w);
-    if (memcmp(OUT, PLAINTEXT, BLOCK_LENGTH) != 0){
-        error_exit("AES_InvCipher IS NOT CORRECT");
-    }
-    printf("AES-128 is correct\n");
+    printf("\n");
+    AES_InvCipher(cipher, OUT, w);
+    if (memcmp(OUT, plain, BLOCK_LENGTH) != 0) printf("\ninvcipher not correct");
+    printf("\n=====================================\n");
 
-    memset(OUT, 0, BLOCK_LENGTH * 2);
-    KeyExpansion(KEY, w);
-    AES_CBC_Cipher(PLAIN, OUT, 2, w, IV);
-    if (memcmp(OUT, CIPHER, BLOCK_LENGTH * 2) != 0){
-        error_exit("AES_CBC_Cipher IS NOT CORRECT");
-    }
-    
-    memset(OUT, 0, BLOCK_LENGTH * 2);
-    AES_CBC_InvCipher(CIPHER, OUT, 2, w, IV);
-    if (memcmp(OUT, PLAIN, BLOCK_LENGTH * 2) != 0){
-        error_exit("AES_CBC_InvCipher IS NOT CORRECT");
-    }
-    printf("AES-CBC-128 is correct\n");
+    printf("\n[TEST] AES-128-ECB\n");
+    read_hex("2B7E151628AED2A6ABF7158809CF4F3C", key, 16);
+    read_hex("6BC1BEE22E409F96E93D7E117393172A", plain, 16);
+    read_hex("3AD77BB40D7A3660A89ECAF32466EF97", cipher, 16);
+    KeyExpansion(key, w);
+    AES_Cipher(plain, OUT, w);
+    if (memcmp(OUT, cipher, BLOCK_LENGTH) != 0) printf("\ncipher not correct");
+    memset(OUT, 0, BLOCK_LENGTH);
+    printf("\n");
+    AES_InvCipher(cipher, OUT, w);
+    if (memcmp(OUT, plain, BLOCK_LENGTH) != 0) printf("\ninvcipher not correct");
+    printf("\n=====================================\n");
 
- 
+    printf("\n[TEST] AES-128-ECB\n");
+    read_hex("2B7E151628AED2A6ABF7158809CF4F3C", key, 16);
+    read_hex("F69F2445DF4F9B17AD2B417BE66C3710", plain, 16);
+    read_hex("7B0C785E27E8AD3F8223207104725DD4", cipher, 16);
+    KeyExpansion(key, w);
+    AES_Cipher(plain, OUT, w);
+    if (memcmp(OUT, cipher, BLOCK_LENGTH) != 0) printf("\ncipher not correct");
+    memset(OUT, 0, BLOCK_LENGTH);
+    printf("\n");
+    AES_InvCipher(cipher, OUT, w);
+    if (memcmp(OUT, plain, BLOCK_LENGTH) != 0) printf("\ninvcipher not correct");
+    printf("\n=====================================\n");
+
+    printf("\n[TEST] AES-128-CBC\n");
+    read_hex("2B7E151628AED2A6ABF7158809CF4F3C", key, 16);
+    read_hex("000102030405060708090A0B0C0D0E0F", iv, 16);
+    read_hex("6BC1BEE22E409F96E93D7E117393172A", plain, 16);
+    read_hex("7649ABAC8119B246CEE98E9B12E9197D", cipher, 16);
+    KeyExpansion(key, w);
+    AES_CBC_Cipher(plain, OUT, 1, w, iv);
+    if (memcmp(OUT, cipher, BLOCK_LENGTH) != 0) printf("\ncipher not correct");
+    memset(OUT, 0, BLOCK_LENGTH);
+    printf("\n");
+    AES_CBC_InvCipher(cipher, OUT, 1, w, iv);
+    if (memcmp(OUT, plain, BLOCK_LENGTH) != 0) printf("\ninvcipher not correct");
+    printf("\n=====================================\n");
+
+    printf("\n[TEST] AES-128-CBC\n");
+    read_hex("56e47a38c5598974bc46903dba290349", key, 16);
+    read_hex("8ce82eefbea0da3c44699ed7db51b7d9", iv, 16);
+    read_hex("a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedf", plain, 64);
+    read_hex("c30e32ffedc0774e6aff6af0869f71aa0f3af07a9a31a9c684db207eb0ef8e4e35907aa632c3ffdf868bb7b29d3d46ad83ce9f9a102ee99d49a53e87f4c3da55", cipher, 64);
+    KeyExpansion(key, w);
+    AES_CBC_Cipher(plain, OUT, 4, w, iv);
+    if (memcmp(OUT, cipher, 64) != 0) printf("\ncipher not correct");
+    memset(OUT, 0, 64);
+    printf("\n");
+    AES_CBC_InvCipher(cipher, OUT, 4, w, iv);
+    if (memcmp(OUT, plain, 64) != 0) printf("\ninvcipher not correct");
+    printf("\n=====================================\n");
+
     return EXIT_SUCCESS;
 }

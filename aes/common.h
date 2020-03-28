@@ -8,7 +8,7 @@
 
 #include <stdint.h>
 
-#define AES_256
+#define AES_128
 
 #ifdef AES_128
 #define Nk      (4)     /* length cipher key (32 bit words)*/
@@ -30,6 +30,7 @@
 #define WORD            (4)     /* standard word size (bytes) */
 
 extern const uint8_t s_box[16][16];
+extern const uint8_t inv_s_box[16][16];
 extern const uint8_t Rcon[11];
 
 void _print(int round, char *step, uint8_t *data);

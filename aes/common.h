@@ -41,8 +41,6 @@ void error_exit(char *msg);
 typedef struct {
     uint8_t key[16];
     uint8_t iv[16];
-    uint8_t plain[16];
-    uint8_t cipher[16];
-} test_vector;
+} aes_128_cbc_key_t;
 
 #endif /* COMMON_H__ */

@@ -56,30 +56,15 @@ void error_exit(char *msg){
     exit(EXIT_FAILURE);
 }
 
-void _print(int round, char *step, uint8_t *data){
+void _print(const int round, const char *step, const uint8_t *data){
     printf("round[%02d].%s \t", round, step);
-    for(int i = 0; i < Nb*Nb; i++){
+    for(int i = 0; i < BLOCK_LENGTH; i++){
         printf("%02X", data[i]);
     } 
     printf("\n");
 }
 
-void _print_w(int n, uint8_t *word){
-    printf("i: %02d ", n);
-    for(int i = 0; i<4; i++){
-        printf("%02X",word[i]);
-    }
-    printf("\n");
-}
-
-void _print_l(uint8_t *word, int n){
-    for(int i = 0; i<n; i++){
-        printf("%02X",word[i]);
-    }
-    printf("\n");
-}
-
-void _print_s(int round, char *step, uint8_t data[][Nb]){
+void _print_s(const int round, const char *step, const uint8_t data[Nb][Nb]){
     printf("round[%02d].%s \t", round, step);
     for (int i = 0; i < 4; i++){
         for (int j = 0; j < Nb; j++){
@@ -89,22 +74,12 @@ void _print_s(int round, char *step, uint8_t data[][Nb]){
     printf("\n");
 }
 
-void _print_word(int i, int n, uint8_t *w){
+void _print_word(const int i, const uint8_t *w){
     printf("i: %02d ", i);
     for (int k = 0; k < 4; k++){
-        printf("%02X", w[4 * n + k]);
+        //printf("%02X", w[4 * n + k]);
+        printf("%02X", w[k]);
     }
     printf("\n");
-
 }
-
-void _print_state(uint8_t state[][Nb], int len){
-    for (int i = 0; i < len; i++){
-        for (int j = 0; j < Nb; j++){
-           printf(" %02X ", state[j][i]);
-        }
-        printf("\n");
-    }
-}
-
 

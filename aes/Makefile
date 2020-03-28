@@ -12,6 +12,7 @@ DEPS   = common
 
 all: $(PROGS)
 
+debug: clean
 debug: CFLAGS+=-DDEBUG
 debug: all
 

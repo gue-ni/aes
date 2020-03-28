@@ -8,7 +8,7 @@
 
 #include <stdint.h>
 
-#define AES_128
+#define AES_128 /* defines the key length */
 
 #ifdef AES_128
 #define Nk      (4)     /* length cipher key (32 bit words)*/
@@ -33,12 +33,16 @@ extern const uint8_t s_box[16][16];
 extern const uint8_t inv_s_box[16][16];
 extern const uint8_t Rcon[11];
 
-void _print(int round, char *step, uint8_t *data);
-void _print_s(int round, char *step, uint8_t data[][Nb]);
-void _print_state(uint8_t state[][Nb], int len);
-void _print_w(int n, uint8_t *word);
-void _print_l(uint8_t *word, int n);
-void _print_word(int i, int n, uint8_t *w);
+void _print(const int round, const char *step, const uint8_t *data);
+void _print_s(const int round, const char *step, const uint8_t data[Nb][Nb]);
+void _print_word(const int i, const uint8_t *w);
 void error_exit(char *msg);
+
+typedef struct {
+    uint8_t key[16];
+    uint8_t iv[16];
+    uint8_t plain[16];
+    uint8_t cipher[16];
+} test_vector;
 
 #endif /* COMMON_H__ */

@@ -342,25 +342,28 @@ int main(void){
     printf("AES-%d (Nk=%d, Nr=%d)\n", Nk*32, Nk, Nr);
 
     uint8_t w[BLOCK_LENGTH * (Nr + 1)];
-    uint8_t OUT[16];
+    uint8_t OUT[32];
 
     KeyExpansion(KEY_128_1, w);
     AES_Cipher(PLAINTEXT, OUT, w);
     if (memcmp(OUT, OUT_128_1, BLOCK_LENGTH) != 0){
         error_exit("AES_Cipher IS NOT CORRECT");
     }
-    AES_InvCipher(OUT, OUT, w);
+    memset(OUT, 0, BLOCK_LENGTH);
+    AES_InvCipher(OUT_128_1, OUT, w);
     if (memcmp(OUT, PLAINTEXT, BLOCK_LENGTH) != 0){
         error_exit("AES_InvCipher IS NOT CORRECT");
     }
     printf("AES-128 is correct\n");
 
+    memset(OUT, 0, BLOCK_LENGTH * 2);
     KeyExpansion(KEY, w);
     AES_CBC_Cipher(PLAIN, OUT, 2, w, IV);
     if (memcmp(OUT, CIPHER, BLOCK_LENGTH * 2) != 0){
         error_exit("AES_CBC_Cipher IS NOT CORRECT");
     }
     
+    memset(OUT, 0, BLOCK_LENGTH * 2);
     AES_CBC_InvCipher(CIPHER, OUT, 2, w, IV);
     if (memcmp(OUT, PLAIN, BLOCK_LENGTH * 2) != 0){
         error_exit("AES_CBC_InvCipher IS NOT CORRECT");

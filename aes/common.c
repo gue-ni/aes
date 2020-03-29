@@ -31,7 +31,8 @@ const uint8_t s_box[16][16] =
     { 0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16 }
 };
 
-const uint8_t inv_s_box[16][16] = {
+const uint8_t inv_s_box[16][16] = 
+{
     { 0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb },
     { 0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87, 0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb },
     { 0x54, 0x7b, 0x94, 0x32, 0xa6, 0xc2, 0x23, 0x3d, 0xee, 0x4c, 0x95, 0x0b, 0x42, 0xfa, 0xc3, 0x4e },
@@ -60,12 +61,8 @@ void read_hex(char *hex, uint8_t *buf, size_t bytes){
         if(sscanf(b, "%hhx", &r) == EOF){
             error_exit("failure converting");
         }
-        //printf("converting %s, result is %02X\n", b, r);
         buf[i] = r;
     } 
-
-    //for (int i = 0; i < bytes; i++) printf("%02x", buf[i]);
-    //printf("\n");
 }
 
 void error_exit(char *msg){
@@ -74,29 +71,28 @@ void error_exit(char *msg){
 }
 
 void _print(const int round, const char *step, const uint8_t *data){
-    printf("round[%02d].%s \t", round, step);
+    fprintf(stderr, "round[%02d].%s \t", round, step);
     for(int i = 0; i < BLOCK_LENGTH; i++){
-        printf("%02X", data[i]);
+        fprintf(stderr, "%02X", data[i]);
     } 
-    printf("\n");
+    fprintf(stderr, "\n");
 }
 
 void _print_s(const int round, const char *step, const uint8_t data[Nb][Nb]){
-    printf("round[%02d].%s \t", round, step);
+    fprintf(stderr, "round[%02d].%s \t", round, step);
     for (int i = 0; i < 4; i++){
         for (int j = 0; j < Nb; j++){
-           printf("%02X", data[i][j]);
+           fprintf(stderr, "%02X", data[i][j]);
         }
     }
-    printf("\n");
+    fprintf(stderr, "\n");
 }
 
 void _print_word(const int i, const uint8_t *w){
-    printf("i: %02d ", i);
+    fprintf(stderr, "i: %02d ", i);
     for (int k = 0; k < 4; k++){
-        //printf("%02X", w[4 * n + k]);
-        printf("%02X", w[k]);
+        fprintf(stderr, "%02X", w[k]);
     }
-    printf("\n");
+    fprintf(stderr, "\n");
 }
 

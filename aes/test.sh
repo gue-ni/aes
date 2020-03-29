@@ -29,6 +29,30 @@ cat data/cipher_aes_128_cbc_002 | ./aes -d \
 diff data/tmp data/plain_aes_128_cbc_002 && echo success
 rm data/tmp
 
+cat data/plain | ./aes -e \
+-k $(cat data/key_aes_128_cbc_002) -i $(cat data/iv_aes_128_cbc_002) -m cbc > data/tmp
+cat data/tmp | ./aes -d \
+-k $(cat data/key_aes_128_cbc_002) -i $(cat data/iv_aes_128_cbc_002) -m cbc > data/tmp
+diff data/tmp data/plain && echo success
+rm data/tmp
+
+cat data/plain | ./aes -e \
+-k $(cat data/key_aes_128_ecb_001) -m ecb > data/tmp
+cat data/tmp | ./aes -d \
+-k $(cat data/key_aes_128_ecb_001) -m ecb > data/tmp
+diff data/tmp data/plain && echo success
+rm data/tmp
+
+cat data/image.jpg | ./aes -e \
+-k $(cat data/key_aes_128_cbc_002) -i $(cat data/iv_aes_128_cbc_002) -m cbc > data/tmp
+cat data/tmp | ./aes -d \
+-k $(cat data/key_aes_128_cbc_002) -i $(cat data/iv_aes_128_cbc_002) -m cbc > data/tmp
+mv data/tmp data/test.jpg
+diff data/test.jpg data/image.jpg && echo success
+
+
+
+
 
 
 

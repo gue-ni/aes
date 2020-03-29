@@ -6,7 +6,6 @@
  * @brief A small implementation of the Advanced Encryption Standard 
  * 
  * TODO: 
- * CBC
  * PKCS#7
  */
 
@@ -247,7 +246,6 @@ void InvCipher(const uint8_t *in, uint8_t *out, const uint8_t *w){
     #ifdef DEBUG
     _print(rp, "ioutput", out);
     #endif
-    //for (int k = 0; k < BLOCK_LENGTH; k++) printf("%02x", out[k]);
 }
 
 void Cipher(const uint8_t *in, uint8_t *out, const uint8_t *w){
@@ -310,13 +308,18 @@ void Cipher(const uint8_t *in, uint8_t *out, const uint8_t *w){
     #ifdef DEBUG
     _print(round, "output", out);
     #endif
-    //for (int k = 0; k < BLOCK_LENGTH; k++) printf("%02x", out[k]);
 }
 
-void XOR_block(uint8_t *a, uint8_t *b, uint8_t *out){
+void XOR(uint8_t *a, uint8_t *b, uint8_t *out){
     for (int i = 0; i < BLOCK_LENGTH; i++){
         out[i] = a[i] ^ b[i];
     }
+}
+
+void PKCS7(uint8_t *buf, uint8_t n){
+    if (n == BLOCK_LENGTH) return;
+    uint8_t padding = BLOCK_LENGTH - n;
+    memset(buf+n, padding, padding);
 }
 
 void AES_CBC_Cipher(const uint8_t *w, const uint8_t *iv, uint8_t encrypt){
@@ -326,29 +329,30 @@ void AES_CBC_Cipher(const uint8_t *w, const uint8_t *iv, uint8_t encrypt){
     uint8_t out[BLOCK_LENGTH];
     
     memcpy(prev, iv, BLOCK_LENGTH);
-    
-    while(fread(buf, 1, BLOCK_LENGTH, stdin)){
+
+    uint8_t n = 0; 
+    while((n = fread(buf, 1, BLOCK_LENGTH, stdin))){
+        PKCS7(buf, n);
         if (encrypt){
-            XOR_block(buf, prev, temp);
+            XOR(buf, prev, temp);
             Cipher(temp, out, w);
             memcpy(prev, out, BLOCK_LENGTH);
 
         }else{
             InvCipher(buf, temp, w);
-            XOR_block(temp, prev, out);
+            XOR(temp, prev, out);
             memcpy(prev, buf, BLOCK_LENGTH);
         }
-
         fwrite(out, 1, BLOCK_LENGTH, stdout);
     }
 }
 
-
-
 void AES_ECB_Cipher(const uint8_t *w, const uint8_t encrypt){
     uint8_t buf[BLOCK_LENGTH];
     
-    while(fread(buf, 1, BLOCK_LENGTH, stdin)){
+    uint8_t n; 
+    while((n = fread(buf, 1, BLOCK_LENGTH, stdin))){
+        PKCS7(buf, n);
         if (encrypt){
             Cipher(buf, buf, w);
         } else {
@@ -359,15 +363,10 @@ void AES_ECB_Cipher(const uint8_t *w, const uint8_t encrypt){
 }
 
 int main(int argc, char **argv){
-    //Nk = 4;
-    //Nr = 10; // TODO make dynamic
-    
     uint8_t KEY[32], IV[BLOCK_LENGTH];
     memset(KEY, 0, 32);
 
-    int mode = AES_ECB, direction = ENCRYPT;
-    
-    int KEY_LEN = 16, set_iv = 0, set_key = 0; 
+    int mode = AES_ECB, direction = ENCRYPT, KEY_LEN = 0, set_iv = 0; 
 
     int c;
     while( (c = getopt(argc, argv, "i:k:m:de")) != -1 ){
@@ -376,21 +375,10 @@ int main(int argc, char **argv){
                 read_hex(optarg, IV, BLOCK_LENGTH);
                 set_iv = 1;
                 break;
-
 			case 'k':
                 KEY_LEN = strlen(optarg) / 2;
-                switch (KEY_LEN){
-                    case 16: Nk = 4; Nr = 10; break;
-                    case 24: Nk = 6; Nr = 12; break;
-                    case 32: Nk = 8; Nr = 14; break;
-                    default:
-                        error_exit("Invalid key length, only 128, 192, and 256 bit are allowed");
-                        break;
-                }
                 read_hex(optarg, KEY, KEY_LEN);
-                set_key = 1;
                 break;
-
             case 'm':
                 if (memcmp(optarg, "cbc", 3) == 0){
                     mode = AES_CBC;
@@ -402,20 +390,20 @@ int main(int argc, char **argv){
                 }
                 error_exit("Invalid mode");
                 break;
-            case 'd':
-                direction = DECRYPT;
-                break;
-            case 'e':
-                direction = ENCRYPT;
-                break;
-			default:
-				exit(EXIT_FAILURE);
-				break;
+            case 'd': direction = DECRYPT; break;
+            case 'e': direction = ENCRYPT; break;
+			default: exit(EXIT_FAILURE);   break;
 		}
 	}
 
-    if (set_key == 0) error_exit("Key not set"); 
+    if(KEY_LEN == 0) error_exit("Key not set"); 
     if(set_iv == 0 && AES_CBC == mode) error_exit("IV is not set");
+    switch (KEY_LEN){
+        case 16: Nk = 4; Nr = 10; break;
+        case 24: Nk = 6; Nr = 12; break;
+        case 32: Nk = 8; Nr = 14; break;
+        default: error_exit("Only 128, 192, and 256 bit keys are allowed"); break;
+    }
 
     uint8_t W[BLOCK_LENGTH * (Nr + 1)];
     KeyExpansion(KEY, W);
@@ -429,5 +417,6 @@ int main(int argc, char **argv){
             AES_CBC_Cipher(W, IV, direction);
             break;
     }
+
     return EXIT_SUCCESS;
 }

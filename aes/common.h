@@ -8,23 +8,6 @@
 
 #include <stdint.h>
 
-#define AES_128 /* defines the key length */
-
-#ifdef AES_128
-#define Nk      (4)     /* length cipher key (32 bit words)*/
-#define Nr      (10)    /* number of rounds */
-#endif
-
-#ifdef AES_192
-#define Nk      (6)     /* length cipher key (32 bit words)*/
-#define Nr      (12)    /* number of rounds */
-#endif
-
-#ifdef AES_256
-#define Nk      (8)     /* length cipher key (32 bit words)*/
-#define Nr      (14)    /* number of rounds */
-#endif
-
 #define Nb      (4)     /* length state */
 #define BLOCK_LENGTH    (Nb * Nb) /* standard block size, in bytes (128 bit) */
 #define WORD            (4)     /* standard word size (bytes) */

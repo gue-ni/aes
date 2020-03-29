@@ -17,10 +17,11 @@
 #include <unistd.h>
 
 #include "common.h"
-#include "test.h"
 
 #define AES_CBC (0xcbc)
 #define AES_ECB (0xecb)
+#define ENCRYPT (1)
+#define DECRYPT (!ENCRYPT)
 
 int Nk, Nr;
 
@@ -190,7 +191,7 @@ void InvMixColumns(uint8_t state[4][Nb]){
     }
 }  
 
-void AES_InvCipher(const uint8_t *in, uint8_t *out, const uint8_t *w){
+void InvCipher(const uint8_t *in, uint8_t *out, const uint8_t *w){
     uint8_t state[4][Nb];
     int i, j, k = 0, rp = 1;
 
@@ -246,10 +247,10 @@ void AES_InvCipher(const uint8_t *in, uint8_t *out, const uint8_t *w){
     #ifdef DEBUG
     _print(rp, "ioutput", out);
     #endif
-    for (int k = 0; k < BLOCK_LENGTH; k++) printf("%02x", out[k]);
+    //for (int k = 0; k < BLOCK_LENGTH; k++) printf("%02x", out[k]);
 }
 
-void AES_Cipher(const uint8_t *in, uint8_t *out, const uint8_t *w){
+void Cipher(const uint8_t *in, uint8_t *out, const uint8_t *w){
     uint8_t state[4][Nb];
     int round = 0;
     #ifdef DEBUG
@@ -309,7 +310,7 @@ void AES_Cipher(const uint8_t *in, uint8_t *out, const uint8_t *w){
     #ifdef DEBUG
     _print(round, "output", out);
     #endif
-    for (int k = 0; k < BLOCK_LENGTH; k++) printf("%02x", out[k]);
+    //for (int k = 0; k < BLOCK_LENGTH; k++) printf("%02x", out[k]);
 }
 
 void XOR_block(uint8_t *a, uint8_t *b, uint8_t *out){
@@ -317,7 +318,7 @@ void XOR_block(uint8_t *a, uint8_t *b, uint8_t *out){
         out[i] = a[i] ^ b[i];
     }
 }
-
+/*
 void AES_CBC_Cipher(uint8_t *in, uint8_t *out, const int n, const uint8_t *w, const uint8_t *iv){
     uint8_t prev[BLOCK_LENGTH];
     uint8_t temp[BLOCK_LENGTH];
@@ -326,7 +327,7 @@ void AES_CBC_Cipher(uint8_t *in, uint8_t *out, const int n, const uint8_t *w, co
 
     for (int i = 0; i < n; i++){
         XOR_block(in+(i * BLOCK_LENGTH), prev, temp);
-        AES_Cipher(temp, out+(i * BLOCK_LENGTH), w);
+        Cipher(temp, out+(i * BLOCK_LENGTH), w);
         memcpy(prev, out+(i * BLOCK_LENGTH), BLOCK_LENGTH);
     }
 }
@@ -343,50 +344,91 @@ void AES_CBC_InvCipher(uint8_t *in, uint8_t *out, const int n, const uint8_t *w,
         memcpy(prev, in+(i * BLOCK_LENGTH), BLOCK_LENGTH);
    }
 }
+*/
+void AES_CBC_Cipher(const uint8_t *w, const uint8_t *iv, uint8_t encrypt){
+    uint8_t prev[BLOCK_LENGTH];
+    uint8_t temp[BLOCK_LENGTH];
+    uint8_t buf[BLOCK_LENGTH];
+    uint8_t out[BLOCK_LENGTH];
+    
+    memcpy(prev, iv, BLOCK_LENGTH);
+    
+    while(fread(buf, 1, BLOCK_LENGTH, stdin)){
+        if (encrypt){
+            XOR_block(buf, prev, temp);
+            Cipher(temp, out, w);
+            memcpy(prev, out, BLOCK_LENGTH);
+
+        }else{
+            InvCipher(buf, temp, w);
+            XOR_block(temp, prev, out);
+            memcpy(prev, buf, BLOCK_LENGTH);
+        }
+
+        fwrite(out, 1, BLOCK_LENGTH, stdout);
+    }
+}
+
+
+
+void AES_ECB_Cipher(const uint8_t *w, const uint8_t encrypt){
+    uint8_t buf[BLOCK_LENGTH];
+    
+    while(fread(buf, 1, BLOCK_LENGTH, stdin)){
+        if (encrypt){
+            Cipher(buf, buf, w);
+        } else {
+            InvCipher(buf, buf, w);
+        }
+        fwrite(buf, 1, BLOCK_LENGTH, stdout);
+    }
+}
+
+
+
 
 int main(int argc, char **argv){
     Nk = 4;
-    Nr = 10;
-    printf("AES-%d (Nk=%d, Nr=%d)\n", Nk*32, Nk, Nr);
-    uint8_t w[BLOCK_LENGTH * (Nr + 1)];
-    uint8_t OUT[64];
-    uint8_t key[Nk*4], iv[Nb*4], plain[64], cipher[64];
+    Nr = 10; // TODO make dynamic
+    
+    uint8_t w[BLOCK_LENGTH * (Nr + 1)], KEY[32], IV[Nb*4];
+    memset(KEY, 0, 32);
 
-    char *key_arg = NULL, *iv_arg = NULL;
-    int mode = AES_ECB;
-    int decrypt = 0;
-    int key_len = 16; 
+    int mode = AES_ECB, direction = ENCRYPT;
+    int KEY_LEN = 16; 
 
     int c;
     while( (c = getopt(argc, argv, "i:k:m:de")) != -1 ){
 		switch( c ){
 			case 'i':
-                iv_arg = optarg;
-                read_hex(iv_arg, iv, BLOCK_LENGTH);
+                read_hex(optarg, IV, BLOCK_LENGTH);
                 break;
+
 			case 'k':
-                key_arg = optarg;
-                key_len = strlen(key_arg) / 2;
-                printf("Key length: %d\n", key_len);
-                read_hex(optarg, key, key_len);
+                KEY_LEN = strlen(optarg) / 2;
+                if (KEY_LEN != 32 && KEY_LEN != 24 && KEY_LEN != 16){
+                    error_exit("Invalid key length, only 128, 192, and 256 bit are allowed");
+                }
+                //fprintf(stderr, "KEY_LEN: %d\n", KEY_LEN);
+                read_hex(optarg, KEY, KEY_LEN);
                 break;
+
             case 'm':
-                if (memcmp(optarg, "aes-128-cbc", 11) == 0){
+                if (memcmp(optarg, "cbc", 3) == 0){
                     mode = AES_CBC;
-                    printf("CBC Mode\n");
                     break;
                 }
-                if (memcmp(optarg, "aes-128-ecb", 11) == 0){
+                if (memcmp(optarg, "ecb", 3) == 0){
                     mode = AES_ECB;
-                    printf("ECB Mode\n");
                     break;
                 }
                 error_exit("Invalid mode");
                 break;
             case 'd':
-                decrypt = 1;
+                direction = DECRYPT;
                 break;
             case 'e':
+                direction = ENCRYPT;
                 break;
 			default:
 				exit(EXIT_FAILURE);
@@ -394,24 +436,26 @@ int main(int argc, char **argv){
 		}
 	}
 
-    if(key_arg == NULL) error_exit("Key is not set");
-    if(iv_arg == NULL && AES_CBC == mode) error_exit("IV is not set");
+    //if(key_arg == NULL) error_exit("Key is not set");
+    //if(iv_arg == NULL && AES_CBC == mode) error_exit("IV is not set");
+    //for (int k = 0; k < BLOCK_LENGTH; k++) fprintf(stderr, "%02x", KEY[k]);fprintf(stderr, "\n");
+    
+    KeyExpansion(KEY, w);
 
-    for (int k = 0; k < BLOCK_LENGTH; k++) printf("%02x", key[k]);
-    printf("\n");
+    switch(mode){
+        case (AES_ECB):
+            AES_ECB_Cipher(w, direction);
+            break;
 
-    read_hex("00112233445566778899aabbccddeeff", plain, 16);
-    read_hex("69c4e0d86a7b0430d8cdb78070b4c55a", cipher, 16);
-
-    if (mode == AES_ECB){
-        if (decrypt){
-            AES_InvCipher(plain, OUT, w);
-
-        } else {
-            AES_Cipher(plain, OUT, w);
-        }
+        case (AES_CBC):
+            AES_CBC_Cipher(w, IV, direction);
+            break;
     }
 
+/*
+    read_hex("000102030405060708090a0b0c0d0e0f", KEY, 16);
+    read_hex("00112233445566778899aabbccddeeff", plain, 16);
+    read_hex("69c4e0d86a7b0430d8cdb78070b4c55a", cipher, 16);
 
     printf("\n[TEST] AES-128-ECB (NIST FIPS)\n");
     KeyExpansion(key, w);
@@ -423,7 +467,7 @@ int main(int argc, char **argv){
     if (memcmp(OUT, plain, BLOCK_LENGTH) != 0) printf("\ninvcipher not correct");
     printf("\n=====================================\n");
 
-
+*/
 
 
 

@@ -7,7 +7,7 @@ LFLAGS = -lm
 
 #PROGS  = aes test
 PROGS  = aes
-DEPS   = common test
+DEPS   = common 
 
 .PHONY: all clean debug
 

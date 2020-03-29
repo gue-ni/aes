@@ -318,33 +318,7 @@ void XOR_block(uint8_t *a, uint8_t *b, uint8_t *out){
         out[i] = a[i] ^ b[i];
     }
 }
-/*
-void AES_CBC_Cipher(uint8_t *in, uint8_t *out, const int n, const uint8_t *w, const uint8_t *iv){
-    uint8_t prev[BLOCK_LENGTH];
-    uint8_t temp[BLOCK_LENGTH];
 
-    memcpy(prev, iv, BLOCK_LENGTH);
-
-    for (int i = 0; i < n; i++){
-        XOR_block(in+(i * BLOCK_LENGTH), prev, temp);
-        Cipher(temp, out+(i * BLOCK_LENGTH), w);
-        memcpy(prev, out+(i * BLOCK_LENGTH), BLOCK_LENGTH);
-    }
-}
-
-void AES_CBC_InvCipher(uint8_t *in, uint8_t *out, const int n, const uint8_t *w, const uint8_t *iv){
-    uint8_t prev[BLOCK_LENGTH];
-    uint8_t temp[BLOCK_LENGTH];
-
-    memcpy(prev, iv, BLOCK_LENGTH);
-
-    for (int i = 0; i < n; i++){
-        AES_InvCipher(in+(i * BLOCK_LENGTH), temp, w);
-        XOR_block(temp, prev, out+(i * BLOCK_LENGTH));
-        memcpy(prev, in+(i * BLOCK_LENGTH), BLOCK_LENGTH);
-   }
-}
-*/
 void AES_CBC_Cipher(const uint8_t *w, const uint8_t *iv, uint8_t encrypt){
     uint8_t prev[BLOCK_LENGTH];
     uint8_t temp[BLOCK_LENGTH];
@@ -384,33 +358,37 @@ void AES_ECB_Cipher(const uint8_t *w, const uint8_t encrypt){
     }
 }
 
-
-
-
 int main(int argc, char **argv){
-    Nk = 4;
-    Nr = 10; // TODO make dynamic
+    //Nk = 4;
+    //Nr = 10; // TODO make dynamic
     
-    uint8_t w[BLOCK_LENGTH * (Nr + 1)], KEY[32], IV[Nb*4];
+    uint8_t KEY[32], IV[BLOCK_LENGTH];
     memset(KEY, 0, 32);
 
     int mode = AES_ECB, direction = ENCRYPT;
-    int KEY_LEN = 16; 
+    
+    int KEY_LEN = 16, set_iv = 0, set_key = 0; 
 
     int c;
     while( (c = getopt(argc, argv, "i:k:m:de")) != -1 ){
 		switch( c ){
 			case 'i':
                 read_hex(optarg, IV, BLOCK_LENGTH);
+                set_iv = 1;
                 break;
 
 			case 'k':
                 KEY_LEN = strlen(optarg) / 2;
-                if (KEY_LEN != 32 && KEY_LEN != 24 && KEY_LEN != 16){
-                    error_exit("Invalid key length, only 128, 192, and 256 bit are allowed");
+                switch (KEY_LEN){
+                    case 16: Nk = 4; Nr = 10; break;
+                    case 24: Nk = 6; Nr = 12; break;
+                    case 32: Nk = 8; Nr = 14; break;
+                    default:
+                        error_exit("Invalid key length, only 128, 192, and 256 bit are allowed");
+                        break;
                 }
-                //fprintf(stderr, "KEY_LEN: %d\n", KEY_LEN);
                 read_hex(optarg, KEY, KEY_LEN);
+                set_key = 1;
                 break;
 
             case 'm':
@@ -436,108 +414,20 @@ int main(int argc, char **argv){
 		}
 	}
 
-    //if(key_arg == NULL) error_exit("Key is not set");
-    //if(iv_arg == NULL && AES_CBC == mode) error_exit("IV is not set");
-    //for (int k = 0; k < BLOCK_LENGTH; k++) fprintf(stderr, "%02x", KEY[k]);fprintf(stderr, "\n");
-    
-    KeyExpansion(KEY, w);
+    if (set_key == 0) error_exit("Key not set"); 
+    if(set_iv == 0 && AES_CBC == mode) error_exit("IV is not set");
+
+    uint8_t W[BLOCK_LENGTH * (Nr + 1)];
+    KeyExpansion(KEY, W);
 
     switch(mode){
         case (AES_ECB):
-            AES_ECB_Cipher(w, direction);
+            AES_ECB_Cipher(W, direction);
             break;
 
         case (AES_CBC):
-            AES_CBC_Cipher(w, IV, direction);
+            AES_CBC_Cipher(W, IV, direction);
             break;
     }
-
-/*
-    read_hex("000102030405060708090a0b0c0d0e0f", KEY, 16);
-    read_hex("00112233445566778899aabbccddeeff", plain, 16);
-    read_hex("69c4e0d86a7b0430d8cdb78070b4c55a", cipher, 16);
-
-    printf("\n[TEST] AES-128-ECB (NIST FIPS)\n");
-    KeyExpansion(key, w);
-    AES_Cipher(plain, OUT, w);
-    if (memcmp(OUT, cipher, BLOCK_LENGTH) != 0) printf("\ncipher not correct");
-    memset(OUT, 0, BLOCK_LENGTH);
-    printf("\n");
-    AES_InvCipher(cipher, OUT, w);
-    if (memcmp(OUT, plain, BLOCK_LENGTH) != 0) printf("\ninvcipher not correct");
-    printf("\n=====================================\n");
-
-*/
-
-
-
-/*
-    printf("\n[TEST] AES-128-ECB (NIST FIPS)\n");
-    read_hex("000102030405060708090a0b0c0d0e0f", key, 16);
-    read_hex("00112233445566778899aabbccddeeff", plain, 16);
-    read_hex("69c4e0d86a7b0430d8cdb78070b4c55a", cipher, 16);
-    KeyExpansion(key, w);
-    AES_Cipher(plain, OUT, w);
-    if (memcmp(OUT, cipher, BLOCK_LENGTH) != 0) printf("\ncipher not correct");
-    memset(OUT, 0, BLOCK_LENGTH);
-    printf("\n");
-    AES_InvCipher(cipher, OUT, w);
-    if (memcmp(OUT, plain, BLOCK_LENGTH) != 0) printf("\ninvcipher not correct");
-    printf("\n=====================================\n");
-
-    printf("\n[TEST] AES-128-ECB\n");
-    read_hex("2B7E151628AED2A6ABF7158809CF4F3C", key, 16);
-    read_hex("6BC1BEE22E409F96E93D7E117393172A", plain, 16);
-    read_hex("3AD77BB40D7A3660A89ECAF32466EF97", cipher, 16);
-    KeyExpansion(key, w);
-    AES_Cipher(plain, OUT, w);
-    if (memcmp(OUT, cipher, BLOCK_LENGTH) != 0) printf("\ncipher not correct");
-    memset(OUT, 0, BLOCK_LENGTH);
-    printf("\n");
-    AES_InvCipher(cipher, OUT, w);
-    if (memcmp(OUT, plain, BLOCK_LENGTH) != 0) printf("\ninvcipher not correct");
-    printf("\n=====================================\n");
-
-    printf("\n[TEST] AES-128-ECB\n");
-    read_hex("2B7E151628AED2A6ABF7158809CF4F3C", key, 16);
-    read_hex("F69F2445DF4F9B17AD2B417BE66C3710", plain, 16);
-    read_hex("7B0C785E27E8AD3F8223207104725DD4", cipher, 16);
-    KeyExpansion(key, w);
-    AES_Cipher(plain, OUT, w);
-    if (memcmp(OUT, cipher, BLOCK_LENGTH) != 0) printf("\ncipher not correct");
-    memset(OUT, 0, BLOCK_LENGTH);
-    printf("\n");
-    AES_InvCipher(cipher, OUT, w);
-    if (memcmp(OUT, plain, BLOCK_LENGTH) != 0) printf("\ninvcipher not correct");
-    printf("\n=====================================\n");
-
-    printf("\n[TEST] AES-128-CBC\n");
-    read_hex("2B7E151628AED2A6ABF7158809CF4F3C", key, 16);
-    read_hex("000102030405060708090A0B0C0D0E0F", iv, 16);
-    read_hex("6BC1BEE22E409F96E93D7E117393172A", plain, 16);
-    read_hex("7649ABAC8119B246CEE98E9B12E9197D", cipher, 16);
-    KeyExpansion(key, w);
-    AES_CBC_Cipher(plain, OUT, 1, w, iv);
-    if (memcmp(OUT, cipher, BLOCK_LENGTH) != 0) printf("\ncipher not correct");
-    memset(OUT, 0, BLOCK_LENGTH);
-    printf("\n");
-    AES_CBC_InvCipher(cipher, OUT, 1, w, iv);
-    if (memcmp(OUT, plain, BLOCK_LENGTH) != 0) printf("\ninvcipher not correct");
-    printf("\n=====================================\n");
-
-    printf("\n[TEST] AES-128-CBC\n");
-    read_hex("56e47a38c5598974bc46903dba290349", key, 16);
-    read_hex("8ce82eefbea0da3c44699ed7db51b7d9", iv, 16);
-    read_hex("a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedf", plain, 64);
-    read_hex("c30e32ffedc0774e6aff6af0869f71aa0f3af07a9a31a9c684db207eb0ef8e4e35907aa632c3ffdf868bb7b29d3d46ad83ce9f9a102ee99d49a53e87f4c3da55", cipher, 64);
-    KeyExpansion(key, w);
-    AES_CBC_Cipher(plain, OUT, 4, w, iv);
-    if (memcmp(OUT, cipher, 64) != 0) printf("\ncipher not correct");
-    memset(OUT, 0, 64);
-    printf("\n");
-    AES_CBC_InvCipher(cipher, OUT, 4, w, iv);
-    if (memcmp(OUT, plain, 64) != 0) printf("\ninvcipher not correct");
-    printf("\n=====================================\n");
-    */
     return EXIT_SUCCESS;
 }

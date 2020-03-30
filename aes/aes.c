@@ -23,6 +23,8 @@
 #define DECRYPT (!ENCRYPT)
 
 int Nk, Nr;
+uint8_t padding_block[BLOCK_LENGTH] = { 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10 };
+
 
 void SubWord(uint8_t *in){
     uint8_t tmp[4];
@@ -316,35 +318,81 @@ void XOR(uint8_t *a, uint8_t *b, uint8_t *out){
     }
 }
 
-void PKCS7(uint8_t *buf, uint8_t n){
-    if (n == BLOCK_LENGTH) return;
+uint8_t PKCS7(uint8_t *buf, uint8_t n){
+    if (n == BLOCK_LENGTH) return BLOCK_LENGTH;
     uint8_t padding = BLOCK_LENGTH - n;
     memset(buf+n, padding, padding);
+    //fprintf(stderr, "Adding padding %d\n", padding);
+    return BLOCK_LENGTH - padding;
+}
+
+uint8_t PKCS7_inv(uint8_t *buf){
+    uint8_t padding = buf[BLOCK_LENGTH-1];
+    if (padding > BLOCK_LENGTH || padding == 0x0) return BLOCK_LENGTH;
+
+    uint8_t len = BLOCK_LENGTH - padding, tmp[BLOCK_LENGTH];
+
+    if(memcmp(buf, padding_block, BLOCK_LENGTH) == 0){
+        return 0;
+    }
+
+    for (int i = len; i < BLOCK_LENGTH; i++){
+        if (buf[i] != padding) return BLOCK_LENGTH;
+    }
+    if (padding == 1){
+        if(fread(tmp, 1, BLOCK_LENGTH, stdin) == 0){
+            //fprintf(stderr, "Padding really is 1\n");
+            return BLOCK_LENGTH - padding;
+        }
+
+        if (memcmp(tmp, padding_block, BLOCK_LENGTH) == 0){
+            return BLOCK_LENGTH;
+        } else {
+            fseek(stdin, -BLOCK_LENGTH, SEEK_CUR);
+            return BLOCK_LENGTH;
+        }
+    }
+    fprintf(stderr, "Padding detected: %d\n", padding);
+    return BLOCK_LENGTH - padding;
+}
+
+void PKCS7_end(void){
+    uint8_t tmp[BLOCK_LENGTH];
+    PKCS7(tmp, 0);
+    fwrite(tmp, 1, BLOCK_LENGTH, stdout);
 }
 
 void AES_CBC_Cipher(const uint8_t *w, const uint8_t *iv, uint8_t encrypt){
-    uint8_t prev[BLOCK_LENGTH];
-    uint8_t temp[BLOCK_LENGTH];
-    uint8_t buf[BLOCK_LENGTH];
-    uint8_t out[BLOCK_LENGTH];
+    uint8_t prev[BLOCK_LENGTH], temp[BLOCK_LENGTH], buf[BLOCK_LENGTH], out[BLOCK_LENGTH];
     
     memcpy(prev, iv, BLOCK_LENGTH);
 
-    uint8_t n = 0; 
+    uint8_t n = 0, padding = BLOCK_LENGTH; 
     while((n = fread(buf, 1, BLOCK_LENGTH, stdin))){
-        PKCS7(buf, n);
         if (encrypt){
+            //padding = PKCS7(buf, n);
             XOR(buf, prev, temp);
             Cipher(temp, out, w);
             memcpy(prev, out, BLOCK_LENGTH);
-
+            fwrite(out, 1, BLOCK_LENGTH, stdout);
         }else{
             InvCipher(buf, temp, w);
             XOR(temp, prev, out);
             memcpy(prev, buf, BLOCK_LENGTH);
+            //padding = PKCS7_inv(out);
+            //if (padding != 0) fwrite(out, 1, padding, stdout);
+            fwrite(out, 1, padding, stdout);
         }
+        memset(buf, 0x0, n);
+    }
+/*
+    if (encrypt && padding == BLOCK_LENGTH) {
+        PKCS7(out, 0);
+        XOR(out, prev, temp);
+        Cipher(temp, out, w);
         fwrite(out, 1, BLOCK_LENGTH, stdout);
     }
+*/
 }
 
 void AES_ECB_Cipher(const uint8_t *w, const uint8_t encrypt){
@@ -352,7 +400,6 @@ void AES_ECB_Cipher(const uint8_t *w, const uint8_t encrypt){
     
     uint8_t n; 
     while((n = fread(buf, 1, BLOCK_LENGTH, stdin))){
-        PKCS7(buf, n);
         if (encrypt){
             Cipher(buf, buf, w);
         } else {

@@ -36,10 +36,8 @@ uint8_t PKCS7_inv(uint8_t *buf){
 
 int main(int argc, char **argv){
     uint8_t buf[BLOCK_LENGTH], out[BLOCK_LENGTH]; 
-    uint8_t n, len = BLOCK_LENGTH, first = 1, finished = 0, in;
+    uint8_t n, len = BLOCK_LENGTH, first = 1, in;
 
-    memset(buf, 0x0, BLOCK_LENGTH);
-    memset(out, 0x0, BLOCK_LENGTH);
     memset(padding_block, BLOCK_LENGTH, BLOCK_LENGTH);
 
     int c;
@@ -62,23 +60,18 @@ int main(int argc, char **argv){
             len = PKCS7(buf, n);
             fwrite(buf, 1, BLOCK_LENGTH, stdout);
         }
-        if(len != BLOCK_LENGTH) fwrite(padding_block, 1, BLOCK_LENGTH, stdout);
+        if(len == BLOCK_LENGTH) fwrite(padding_block, 1, BLOCK_LENGTH, stdout);
     } else {
         while((n = fread(buf, 1, BLOCK_LENGTH, stdin))){
-            if (memcmp(buf, padding_block, BLOCK_LENGTH) == 0){
-                len = PKCS7_inv(out);
-                fwrite(out, 1, len, stdout);
-                finished = 1;
-                break;
-            }
-            if (!first){
+           if (!first){
                 fwrite(out, 1, BLOCK_LENGTH, stdout);
             } else {
                 first = 0;
             }
             memcpy(out, buf, BLOCK_LENGTH);
         }
-        if (!finished) fwrite(out, 1, BLOCK_LENGTH, stdout);
+        len = PKCS7_inv(out); 
+        fwrite(out, 1, len, stdout);
     }
     return 0;
 }

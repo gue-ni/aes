@@ -22,7 +22,7 @@ uint8_t PKCS7(uint8_t *buf, uint8_t n){
     return BLOCK_LENGTH - padding;
 }
 
-uint8_t PKCS7_inv(uint8_t *buf){
+uint8_t invPKCS7(uint8_t *buf){
     uint8_t padding = buf[BLOCK_LENGTH-1];
     if (padding > BLOCK_LENGTH || padding == 0x0) return BLOCK_LENGTH;
 
@@ -70,7 +70,7 @@ int main(int argc, char **argv){
             }
             memcpy(out, buf, BLOCK_LENGTH);
         }
-        len = PKCS7_inv(out); 
+        len = invPKCS7(out); 
         fwrite(out, 1, len, stdout);
     }
     return 0;

@@ -6,7 +6,6 @@
  * @brief A small implementation of the Advanced Encryption Standard 
  * 
  * TODO: 
- * PKCS#7
  * dup2
  */
 #include <stdio.h>

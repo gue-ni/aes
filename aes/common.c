@@ -1,7 +1,7 @@
 /**
  * @file common.c
  * @author Jakob G. Maier <e11809618@student.tuwien.ac.at>
- * @date 10.01.2020
+ * @date 31.03.2020
  * 
  * @brief Implements error handling and print functions
  */

@@ -1,3 +1,10 @@
+/**
+ * @file pkcs7.c
+ * @author Jakob G. Maier <e11809618@student.tuwien.ac.at>
+ * @date 31.03.2020
+ * 
+ * @brief A small implementation of the PKCS#7 cryptographic padding algorithm 
+ */
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -5,12 +12,8 @@
 
 #include "common.h"
 
-uint8_t padding_block[BLOCK_LENGTH] = { 
-                                        0x10, 0x10, 0x10, 0x10, 
-                                        0x10, 0x10, 0x10, 0x10, 
-                                        0x10, 0x10, 0x10, 0x10, 
-                                        0x10, 0x10, 0x10, 0x10 
-                                      };
+uint8_t padding_block[BLOCK_LENGTH];
+
 
 uint8_t PKCS7(uint8_t *buf, uint8_t n){
     if (n == BLOCK_LENGTH) return BLOCK_LENGTH;
@@ -34,8 +37,10 @@ uint8_t PKCS7_inv(uint8_t *buf){
 int main(int argc, char **argv){
     uint8_t buf[BLOCK_LENGTH], out[BLOCK_LENGTH]; 
     uint8_t n, len = BLOCK_LENGTH, first = 1, finished = 0, in;
+
     memset(buf, 0x0, BLOCK_LENGTH);
     memset(out, 0x0, BLOCK_LENGTH);
+    memset(padding_block, BLOCK_LENGTH, BLOCK_LENGTH);
 
     int c;
     while( (c = getopt(argc, argv, "io")) != -1 ){

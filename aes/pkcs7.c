@@ -33,7 +33,7 @@ uint8_t PKCS7_inv(uint8_t *buf){
 
 int main(int argc, char **argv){
     uint8_t buf[BLOCK_LENGTH], out[BLOCK_LENGTH]; 
-    uint8_t n, len = BLOCK_LENGTH, first = 1, finished = 0, in = 1;
+    uint8_t n, len = BLOCK_LENGTH, first = 1, finished = 0, in;
     memset(buf, 0x0, BLOCK_LENGTH);
     memset(out, 0x0, BLOCK_LENGTH);
 

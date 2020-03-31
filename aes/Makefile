@@ -6,7 +6,7 @@ CFLAGS = -std=c99 -Wall -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_SVID_SOURCE -D_POSIX_
 LFLAGS = -lm
 
 #PROGS  = aes test
-PROGS  = aes
+PROGS  = aes pkcs7
 DEPS   = common 
 
 .PHONY: all clean debug

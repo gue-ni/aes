@@ -70,7 +70,15 @@ void error_exit(char *msg){
     exit(EXIT_FAILURE);
 }
 
-void _print(const int round, const char *step, const uint8_t *data){
+void _print(const uint8_t *data){
+    for(int i = 0; i < BLOCK_LENGTH; i++){
+        fprintf(stderr, "%02X", data[i]);
+    } 
+    fprintf(stderr, "\n");
+}
+
+
+void _print_r(const int round, const char *step, const uint8_t *data){
     fprintf(stderr, "round[%02d].%s \t", round, step);
     for(int i = 0; i < BLOCK_LENGTH; i++){
         fprintf(stderr, "%02X", data[i]);

@@ -96,7 +96,7 @@ void _print_s(const int round, const char *step, const uint8_t data[Nb][Nb]){
     fprintf(stderr, "\n");
 }
 
-void _print_word(const int i, const uint8_t *w){
+void _print_w(const int i, const uint8_t *w){
     fprintf(stderr, "i: %02d ", i);
     for (int k = 0; k < 4; k++){
         fprintf(stderr, "%02X", w[k]);

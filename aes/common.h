@@ -19,7 +19,7 @@ extern const uint8_t Rcon[11];
 void _print(const uint8_t *data);
 void _print_r(const int round, const char *step, const uint8_t *data);
 void _print_s(const int round, const char *step, const uint8_t data[Nb][Nb]);
-void _print_word(const int i, const uint8_t *w);
+void _print_w(const int i, const uint8_t *w);
 void error_exit(char *msg);
 void read_hex(char *hex, uint8_t *buf, size_t bytes);
 

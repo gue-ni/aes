@@ -13,7 +13,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
-
 #include "common.h"
 
 #define AES_CBC (0xcbc)
@@ -22,6 +21,12 @@
 #define DECRYPT (!ENCRYPT)
 
 int Nk, Nr;
+
+void copy_state(uint8_t a[4][4], uint8_t b[4][4]){
+    for (int i = 0; i< 4; i++){
+        memcpy(a[i], b[i], 4);
+    }
+}
 
 void SubWord(uint8_t *in){
     uint8_t tmp[4];
@@ -59,41 +64,41 @@ void KeyExpansion(const uint8_t key[], uint8_t w[]){
             temp[k] = w[(i - 1) * 4 + k];
         }
         #ifdef DEBUG
-        _print_word(i, temp);
+        _print_w(i, temp);
         #endif
 
         if ( i % Nk == 0){
             RotWord(temp);
             #ifdef DEBUG
-            _print_word(i, temp);
+            _print_w(i, temp);
             #endif
 
             SubWord(temp);
             #ifdef DEBUG
-            _print_word(i, temp);
+            _print_w(i, temp);
             printf("i: %02d %02X000000\n", i, Rcon[i/Nk]);
             #endif
             temp[0] = temp[0] ^ Rcon[i/Nk];
             #ifdef DEBUG
-            _print_word(i, temp);
+            _print_w(i, temp);
             #endif
 
         } else if(Nk > 6 && i % Nk == 4){
             SubWord(temp);
             #ifdef DEBUG
-            _print_word(i, temp);
+            _print_w(i, temp);
             #endif
         } 
 
         #ifdef DEBUG
-        _print_word(i, w+(4 * (i-Nk)));
+        _print_w(i, w+(4 * (i-Nk)));
         #endif
         for (int k = 0; k < 4;k++){
             w[4 * i + k] = w[4 * (i-Nk) + k] ^ temp[k];
         }
 
         #ifdef DEBUG
-        _print_word(i, w+4*i);
+        _print_w(i, w+4*i);
         #endif
 
         i++;
@@ -113,7 +118,7 @@ void ShiftRows(uint8_t state[4][Nb]){
     for (int i = 0; i< 4; i++){
         memcpy(temp[i], state[i], 4);
     }
-
+    copy_state(temp, state);
     for (int r = 1; r < 4; r++){
         for (int c = 0; c < 4; c++){
             state[c][r] = temp[ (c + r) % Nb][r];
@@ -139,7 +144,7 @@ uint8_t multiply(uint8_t p, uint8_t q){
 
 void MixColumns(uint8_t state[4][Nb]){
     uint8_t temp[4][Nb];
-    for (int i = 0; i< 4; i++) memcpy(temp[i], state[i], 4);
+    copy_state(temp, state);
 
     for (int c = 0; c < 4; c++){
         state[c][0] = multiply(0x02, temp[c][0]) ^ multiply(0x03, temp[c][1]) ^ (temp[c][2]) ^ (temp[c][3]);
@@ -160,7 +165,7 @@ void AddRoundKey(uint8_t state[4][Nb], const uint8_t *roundKey){
 
 void InvShiftRows(uint8_t state[4][Nb]){
     uint8_t temp[4][Nb];
-    for (int i = 0; i< 4; i++) memcpy(temp[i], state[i], 4);
+    copy_state(temp, state);
 
     for (int r = 1; r < 4; r++){
         for (int c = 0; c < 4; c++){
@@ -179,7 +184,7 @@ void InvSubBytes(uint8_t state[4][Nb]){
 
 void InvMixColumns(uint8_t state[4][Nb]){
     uint8_t temp[4][Nb];
-    for (int i = 0; i< 4; i++) memcpy(temp[i], state[i], 4);
+    copy_state(temp, state);
 
     for (int c = 0; c < 4; c++){
         state[c][0] = multiply(0x0e, temp[c][0]) ^ multiply(0x0b, temp[c][1]) ^ multiply(0x0d, temp[c][2]) ^ multiply(0x09, temp[c][3]);

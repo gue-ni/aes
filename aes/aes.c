@@ -76,7 +76,7 @@ void KeyExpansion(const uint8_t key[], uint8_t w[]){
             SubWord(temp);
             #ifdef DEBUG
             _print_w(i, temp);
-            printf("i: %02d %02X000000\n", i, Rcon[i/Nk]);
+            fprintf(stderr, "i: %02d %02X000000\n", i, Rcon[i/Nk]);
             #endif
             temp[0] = temp[0] ^ Rcon[i/Nk];
             #ifdef DEBUG
@@ -358,17 +358,20 @@ int main(int argc, char **argv){
     uint8_t KEY[32], IV[BLOCK_LENGTH];
     memset(KEY, 0, 32);
 
-    int mode = AES_ECB, direction = ENCRYPT, KEY_LEN = 0, set_iv = 0; 
+    int mode = AES_ECB, encrypt = ENCRYPT, KEY_LEN = 16, set_iv = 0; 
 
     int c;
-    while( (c = getopt(argc, argv, "i:k:m:de")) != -1 ){
+    while( (c = getopt(argc, argv, "i:k:m:del:")) != -1 ){
 		switch( c ){
+            case 'l':
+                KEY_LEN = strtol(optarg, NULL, 10) / 8;
+                break;
 			case 'i':
                 read_hex(optarg, IV, BLOCK_LENGTH);
                 set_iv = 1;
                 break;
 			case 'k':
-                KEY_LEN = strlen(optarg) / 2;
+//                KEY_LEN = strlen(optarg) / 2;
                 read_hex(optarg, KEY, KEY_LEN);
                 break;
             case 'm':
@@ -382,8 +385,8 @@ int main(int argc, char **argv){
                 }
                 error_exit("Invalid mode");
                 break;
-            case 'd': direction = DECRYPT; break;
-            case 'e': direction = ENCRYPT; break;
+            case 'd': encrypt = DECRYPT; break;
+            case 'e': encrypt = ENCRYPT; break;
 			default: exit(EXIT_FAILURE);   break;
 		}
 	}
@@ -397,18 +400,18 @@ int main(int argc, char **argv){
         default: error_exit("Only 128, 192, and 256 bit keys are allowed"); break;
     }
 
+
     uint8_t W[BLOCK_LENGTH * (Nr + 1)];
     KeyExpansion(KEY, W);
 
     switch(mode){
         case (AES_ECB):
-            AES_ECB_Cipher(W, direction);
+            AES_ECB_Cipher(W, encrypt);
             break;
 
         case (AES_CBC):
-            AES_CBC_Cipher(W, IV, direction);
+            AES_CBC_Cipher(W, IV, encrypt);
             break;
     }
-
     return EXIT_SUCCESS;
 }

@@ -41,12 +41,12 @@ int main(int argc, char **argv){
     memset(padding_block, BLOCK_LENGTH, BLOCK_LENGTH);
 
     int c;
-    while( (c = getopt(argc, argv, "io")) != -1 ){
+    while( (c = getopt(argc, argv, "ed")) != -1 ){
 		switch( c ){
-            case 'i':
+            case 'e':
                 in = 1;
                 break;
-            case 'o':
+            case 'd':
                 in = 0;
                 break;
             default:

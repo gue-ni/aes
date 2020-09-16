@@ -387,7 +387,10 @@ int main(int argc, char **argv){
                 break;
             case 'd': encrypt = DECRYPT; break;
             case 'e': encrypt = ENCRYPT; break;
-			default: exit(EXIT_FAILURE);   break;
+			default: 
+				printf("this did non work\n");
+				exit(EXIT_FAILURE);   
+				break;
 		}
 	}
 

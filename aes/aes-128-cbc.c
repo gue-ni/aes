@@ -26,12 +26,14 @@ int main(int argc, char **argv){
                 break;
 			case 'e':
                 break;
+            /*
             case 'k':
                 key = optarg;
                 break;
             case 'i':
                 iv = optarg;
                 break;
+            */
             default:
                 break;
         }
